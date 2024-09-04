@@ -165,7 +165,8 @@ module VX_cache_cluster import VX_gpu_pkg::*; #(
             .CORE_OUT_BUF ((NUM_INPUTS != NUM_CACHES) ? 2 : CORE_OUT_BUF),
             .MEM_OUT_BUF  ((NUM_CACHES > 1) ? 2 : MEM_OUT_BUF),
             .NC_ENABLE    (NC_ENABLE),
-            .PASSTHRU     (PASSTHRU)
+            .PASSTHRU     (PASSTHRU),
+            .ENABLE_MESH  (0)
         ) cache_wrap (
         `ifdef PERF_ENABLE
             .cache_perf  (perf_cache_unit[i]),

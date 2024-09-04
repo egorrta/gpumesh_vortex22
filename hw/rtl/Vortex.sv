@@ -89,7 +89,8 @@ module Vortex import VX_gpu_pkg::*; (
         .CORE_OUT_BUF   (2),
         .MEM_OUT_BUF    (2),
         .NC_ENABLE      (1),
-        .PASSTHRU       (!`L3_ENABLED)
+        .PASSTHRU       (!`L3_ENABLED),
+        .ENABLE_MESH    (0)
     ) l3cache (
         .clk            (clk),
         .reset          (l3_reset),
