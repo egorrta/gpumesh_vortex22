@@ -83,7 +83,7 @@ endif
 
 PROJECT := rtlsim
 
-FROM_CONSTELLATION := -f /home/user/poly/gpumesh_global/chipyard/sims/verilator/generated-src/gpumesh.test.TestHarness.TLMesh01/sim_files.common.f +define+CLOCK_PERIOD=1.0 +define+RESET_DELAY=777.7 +define+PRINTF_COND=0 +define+STOP_COND=0 +define+MODEL=TestHarness +define+RANDOMIZE_MEM_INIT +define+RANDOMIZE_REG_INIT +define+RANDOMIZE_GARBAGE_ASSIGN +define+RANDOMIZE_INVALID_ASSIGN +define+VERILATOR
+FROM_CONSTELLATION := -f /home/user/poly/gpumesh_global/chipyard/sims/verilator/generated-src/gpumesh.test.TestHarness.TLMesh01/sim_files.common.f +define+CLOCK_PERIOD=1.0 +define+RESET_DELAY=777.7 +define+PRINTF_COND=0 +define+STOP_COND=0 +define+MODEL=TestHarness +define+RANDOMIZE_MEM_INIT +define+RANDOMIZE_REG_INIT +define+RANDOMIZE_GARBAGE_ASSIGN +define+RANDOMIZE_INVALID_ASSIGN +define+VERILATOR +define+ASSERT_VERBOSE_COND_=0 +define+ASSERT_VERBOSE_COND=0
 
 all: $(DESTDIR)/$(PROJECT)
 

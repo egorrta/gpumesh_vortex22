@@ -319,15 +319,15 @@ module VX_cache import VX_gpu_pkg::*; #(
 
     if (ENABLE_MESH == 1) begin
 
-        `ifdef DBG_TRACE_CACHE
-            always @(posedge clk) begin 
-                `TRACE(0, ("%d: (Mesh) valid_in: %d, ready_in: %d, valid_out: %d, ready_out: %d\n", $time, core_req_valid[0], core_req_ready[0], per_bank_core_req_valid[0], per_bank_core_req_ready[0]));
-                if (($time % 1000) == 0) begin
-                    `TRACE(0, ("(Mesh) full_sel: %d \n", per_bank_core_req_idx));
-                    `TRACE(0, ("(Mesh) NUM_IN: %d, NUM_OUT: %d, DATA_W: %d \n", NUM_REQS, NUM_BANKS, CORE_REQ_DATAW));
-                end
-            end
-        `endif
+        // `ifdef DBG_TRACE_CACHE
+        //     always @(posedge clk) begin 
+        //         `TRACE(0, ("%d: (Mesh) valid_in: %d, ready_in: %d, valid_out: %d, ready_out: %d\n", $time, core_req_valid[0], core_req_ready[0], per_bank_core_req_valid[0], per_bank_core_req_ready[0]));
+        //         if (($time % 1000) == 0) begin
+        //             `TRACE(0, ("(Mesh) full_sel: %d \n", per_bank_core_req_idx));
+        //             `TRACE(0, ("(Mesh) NUM_IN: %d, NUM_OUT: %d, DATA_W: %d \n", NUM_REQS, NUM_BANKS, CORE_REQ_DATAW));
+        //         end
+        //     end
+        // `endif
 
         //`STATIC_ASSERT(0 == (`IO_BASE_ADDR % `MEM_BLOCK_SIZE), ("invalid parameter"))
 
@@ -348,7 +348,7 @@ module VX_cache import VX_gpu_pkg::*; #(
         //     .ready_out (per_bank_core_req_ready[0])
         // );
 
-        // // 1 core mesh
+        // 1 core mesh
         // NoC lazyNoC (	
         //     .clock                            (clk),
         //     .reset                            (req_xbar_reset),
@@ -371,39 +371,39 @@ module VX_cache import VX_gpu_pkg::*; #(
         // );
         // assign per_bank_core_req_idx[0] = 1'b0;
 
-        // // 2 core mesh
-        // NoC lazyNoC (
-        //     .clock                            (clk),
-        //     .reset                            (req_xbar_reset),
-        //     .io_ingress_1_flit_ready          (core_req_ready[1]),
-        //     .io_ingress_1_flit_valid          (core_req_valid[1]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_1_flit_bits_head      (1'b1),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_1_flit_bits_tail      (1'b1),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_1_flit_bits_payload   (core_req_data_in[1]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_1_flit_bits_egress_id (core_req_bid[1]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_0_flit_ready          (core_req_ready[0]),
-        //     .io_ingress_0_flit_valid          (core_req_valid[0]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_0_flit_bits_head      (1'b1),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_0_flit_bits_tail      (1'b1),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_0_flit_bits_payload   (core_req_data_in[0]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_ingress_0_flit_bits_egress_id (core_req_bid[0]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
-        //     .io_egress_1_flit_ready           (per_bank_core_req_ready[1]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:259:19, :290:26]
-        //     .io_egress_1_flit_valid           (per_bank_core_req_valid[1]),
-        //     .io_egress_1_flit_bits_head       (),
-        //     .io_egress_1_flit_bits_tail       (),
-        //     .io_egress_1_flit_bits_payload    (core_req_data_out[1]),
-        //     .io_egress_1_flit_bits_ingress_id (per_bank_core_req_idx[1]),
-        //     .io_egress_0_flit_ready           (per_bank_core_req_ready[0]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:259:19, :290:26]
-        //     .io_egress_0_flit_valid           (per_bank_core_req_valid[0]),
-        //     .io_egress_0_flit_bits_head       (),
-        //     .io_egress_0_flit_bits_tail       (),
-        //     .io_egress_0_flit_bits_payload    (core_req_data_out[0]),
-        //     .io_egress_0_flit_bits_ingress_id (per_bank_core_req_idx[0]),
-        //     .io_router_clocks_0_clock         (clk),
-        //     .io_router_clocks_0_reset         (req_xbar_reset),
-        //     .io_router_clocks_1_clock         (clk),
-        //     .io_router_clocks_1_reset         (req_xbar_reset)
-        // );
+        // 2 core mesh
+        NoC lazyNoC (
+            .clock                            (clk),
+            .reset                            (req_xbar_reset),
+            .io_ingress_1_flit_ready          (core_req_ready[1]),
+            .io_ingress_1_flit_valid          (core_req_valid[1]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_1_flit_bits_head      (1'b1),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_1_flit_bits_tail      (1'b1),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_1_flit_bits_payload   (core_req_data_in[1]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_1_flit_bits_egress_id (core_req_bid[1]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_0_flit_ready          (core_req_ready[0]),
+            .io_ingress_0_flit_valid          (core_req_valid[0]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_0_flit_bits_head      (1'b1),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_0_flit_bits_tail      (1'b1),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_0_flit_bits_payload   (core_req_data_in[0]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_ingress_0_flit_bits_egress_id (core_req_bid[0]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:290:26]
+            .io_egress_1_flit_ready           (per_bank_core_req_ready[1]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:259:19, :290:26]
+            .io_egress_1_flit_valid           (per_bank_core_req_valid[1]),
+            .io_egress_1_flit_bits_head       (),
+            .io_egress_1_flit_bits_tail       (),
+            .io_egress_1_flit_bits_payload    (core_req_data_out[1]),
+            .io_egress_1_flit_bits_ingress_id (per_bank_core_req_idx[1]),
+            .io_egress_0_flit_ready           (per_bank_core_req_ready[0]),	// @[generators/gpumesh/src/main/scala/test/TestHarness.scala:259:19, :290:26]
+            .io_egress_0_flit_valid           (per_bank_core_req_valid[0]),
+            .io_egress_0_flit_bits_head       (),
+            .io_egress_0_flit_bits_tail       (),
+            .io_egress_0_flit_bits_payload    (core_req_data_out[0]),
+            .io_egress_0_flit_bits_ingress_id (per_bank_core_req_idx[0]),
+            .io_router_clocks_0_clock         (clk),
+            .io_router_clocks_0_reset         (req_xbar_reset),
+            .io_router_clocks_1_clock         (clk),
+            .io_router_clocks_1_reset         (req_xbar_reset)
+        );
 
         // 2 core mesh
         // NoC lazyNoC (
