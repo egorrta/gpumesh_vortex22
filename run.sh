@@ -8,6 +8,6 @@ kill $PID
 #./ci/blackbox.sh --driver=rtlsim --cores=2 --clusters=2 --l3cache --app=diverge --args="-n1"
 
 # 2 core
-CONFIGS="-DSOCKET_SIZE=1" ./ci/blackbox.sh --driver=rtlsim --cores=2 --l2cache --app=diverge --args="-n1" --debug=1
+CONFIGS="-DSOCKET_SIZE=1" ./ci/blackbox.sh --driver=rtlsim --cores=2 --l2cache --mesh --app=diverge --args="-n1" --debug=1
 # 1 core
 #./ci/blackbox.sh --driver=rtlsim --cores=2 --l2cache --app=diverge --args="-n1" --debug=1

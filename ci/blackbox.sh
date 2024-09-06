@@ -40,6 +40,7 @@ WARPS=4
 THREADS=4
 L2=
 L3=
+L2MESH=
 DEBUG=0
 DEBUG_LEVEL=0
 SCOPE=0
@@ -82,6 +83,10 @@ case $i in
         ;;
     --l3cache)
         L3=-DL3_ENABLE
+        shift
+        ;;
+    --mesh)
+        L2MESH=-DL2_MESH_ENABLE
         shift
         ;;
     --debug=*)
@@ -179,7 +184,7 @@ then
     exit $status
 fi
 
-CONFIGS="-DNUM_CLUSTERS=$CLUSTERS -DNUM_CORES=$CORES -DNUM_WARPS=$WARPS -DNUM_THREADS=$THREADS $L2 $L3 $PERF_FLAG $CONFIGS"
+CONFIGS="-DNUM_CLUSTERS=$CLUSTERS -DNUM_CORES=$CORES -DNUM_WARPS=$WARPS -DNUM_THREADS=$THREADS $L2 $L3 $L2MESH $PERF_FLAG $CONFIGS"
 
 echo "CONFIGS=$CONFIGS"
 

@@ -127,6 +127,12 @@
     `define DCACHE_DISABLE
 `endif
 
+`ifdef L2_MESH_ENABLE
+    `define L2_MESH_ENABLED   1
+`else
+    `define L2_MESH_ENABLED   0
+`endif
+
 `ifndef MEM_BLOCK_SIZE
 `define MEM_BLOCK_SIZE 64
 `endif
