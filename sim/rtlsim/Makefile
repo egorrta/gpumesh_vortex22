@@ -93,6 +93,7 @@ FROM_CONSTELLATION := -f $(MESH_DIR)/sim_files.common.f \
 all: $(DESTDIR)/$(PROJECT)
 
 $(DESTDIR)/VX_mesh_define.vh:
+    python $(SCRIPT_DIR)/prepare_mesh_verilog.py -i $(MESH_DIR)
 	python $(SCRIPT_DIR)/gen_mesh_connect.py -i $(MESH_DIR) -o $(DESTDIR)/VX_mesh_define.vh
 
 $(DESTDIR)/$(PROJECT): $(SRCS) $(SRC_DIR)/main.cpp $(DESTDIR)/VX_mesh_define.vh
