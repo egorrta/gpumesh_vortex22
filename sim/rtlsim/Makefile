@@ -4,6 +4,8 @@ DESTDIR ?= $(CURDIR)
 
 SRC_DIR = $(VORTEX_HOME)/sim/rtlsim
 
+MESH_DIR = /home/user/poly/gpumesh_global/chipyard/sims/verilator/generated-src/gpumesh.test.TestHarness.TLMesh01
+
 CXXFLAGS += -std=c++17 -Wall -Wextra -Wfatal-errors -Wno-array-bounds
 CXXFLAGS += -fPIC -Wno-maybe-uninitialized
 CXXFLAGS += -I$(ROOT_DIR)/hw -I$(COMMON_DIR)
@@ -83,15 +85,24 @@ endif
 
 PROJECT := rtlsim
 
-FROM_CONSTELLATION := -f /home/user/poly/gpumesh_global/chipyard/sims/verilator/generated-src/gpumesh.test.TestHarness.TLMesh01/sim_files.common.f +define+CLOCK_PERIOD=1.0 +define+RESET_DELAY=777.7 +define+PRINTF_COND=0 +define+STOP_COND=0 +define+MODEL=TestHarness +define+RANDOMIZE_MEM_INIT +define+RANDOMIZE_REG_INIT +define+RANDOMIZE_GARBAGE_ASSIGN +define+RANDOMIZE_INVALID_ASSIGN +define+VERILATOR +define+ASSERT_VERBOSE_COND_=0 +define+ASSERT_VERBOSE_COND=0
+FROM_CONSTELLATION := -f $(MESH_DIR)/sim_files.common.f \
++define+CLOCK_PERIOD=1.0 +define+RESET_DELAY=777.7 +define+PRINTF_COND=0 +define+STOP_COND=0 +define+MODEL=TestHarness \
++define+RANDOMIZE_MEM_INIT +define+RANDOMIZE_REG_INIT +define+RANDOMIZE_GARBAGE_ASSIGN +define+RANDOMIZE_INVALID_ASSIGN \
++define+VERILATOR +define+ASSERT_VERBOSE_COND_=0 +define+ASSERT_VERBOSE_COND=0
 
 all: $(DESTDIR)/$(PROJECT)
 
-$(DESTDIR)/$(PROJECT): $(SRCS) $(SRC_DIR)/main.cpp
-	verilator --build $(VL_FLAGS) $(FROM_CONSTELLATION) $^ -CFLAGS '$(CXXFLAGS) -DSTARTUP_ADDR=0x80000000' -LDFLAGS '$(LDFLAGS)' --Mdir $@.obj_dir -o $@
+$(DESTDIR)/VX_mesh_define.vh:
+	python $(SCRIPT_DIR)/gen_mesh_connect.py -i $(MESH_DIR) -o $(DESTDIR)/VX_mesh_define.vh
 
-$(DESTDIR)/lib$(PROJECT).so: $(SRCS)
-	verilator --build $(VL_FLAGS) $(FROM_CONSTELLATION) $^ -CFLAGS '$(CXXFLAGS)' -LDFLAGS '-shared $(LDFLAGS)' --Mdir $@.obj_dir -o $@
+$(DESTDIR)/$(PROJECT): $(SRCS) $(SRC_DIR)/main.cpp $(DESTDIR)/VX_mesh_define.vh
+	verilator --build $(VL_FLAGS) -I$(DESTDIR)/VX_mesh_define.vh $(FROM_CONSTELLATION) $^ -CFLAGS '$(CXXFLAGS) -DSTARTUP_ADDR=0x80000000' -LDFLAGS '$(LDFLAGS)' --Mdir $@.obj_dir -o $@
+
+$(DESTDIR)/lib$(PROJECT).so: $(SRCS) $(DESTDIR)/VX_mesh_define.vh
+	verilator --build $(VL_FLAGS) -I$(DESTDIR)/VX_mesh_define.vh $(FROM_CONSTELLATION) $^ -CFLAGS '$(CXXFLAGS)' -LDFLAGS '-shared $(LDFLAGS)' --Mdir $@.obj_dir -o $@
+
+clean-mesh:
+	rm -f $(DESTDIR)/VX_mesh_define.vh
 
 clean-lib:
 	rm -rf $(DESTDIR)/lib$(PROJECT).so.obj_dir
@@ -101,4 +112,4 @@ clean-exe:
 	rm -rf $(DESTDIR)/$(PROJECT).obj_dir
 	rm -f $(DESTDIR)/$(PROJECT)
 
-clean: clean-lib clean-exe
+clean: clean-lib clean-exe clean-mesh
