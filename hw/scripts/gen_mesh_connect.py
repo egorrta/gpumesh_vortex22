@@ -7,6 +7,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-i', "--input", default='none', help='generated NoC folder')
 parser.add_argument('-o', "--output", default='none', help='mesh.mk (MESH_CONNECTION)')
 parser.add_argument('-en', "--mesh_enable", default=0, help='Generate mesh')
+parser.add_argument('-n', "--nodes", default=1, help='number of nodes generated')
 
 args = parser.parse_args()
 
@@ -14,7 +15,7 @@ if args.input == 'none' or args.output == 'none':
     print('Error: invalid arguments')
     sys.exit()
 
-nodes = 2
+nodes = int(args.nodes)
 #genereted_folder = "gpumesh.test.TestHarness.TLMesh01" #TLMesh01
 #noc_src_dir = os.getcwd() + "/../generated/" + genereted_folder + "/gen-collateral"
 #noc_src_dir = "/home/user/poly/gpumesh_global/chipyard/sims/verilator/generated-src/gpumesh.test.TestHarness.TLMesh01" + "/gen-collateral"

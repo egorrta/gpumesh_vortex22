@@ -7,6 +7,10 @@ SRC_DIR = $(VORTEX_HOME)/sim/rtlsim
 #Chipyard variables
 MESH_DIR = /home/user/poly/gpumesh_global/chipyard/sims/verilator/generated-src/gpumesh.test.TestHarness.TLMesh01
 
+MESH_XDIM ?= 1
+MESH_YDIM ?= 1
+MESH_SIZE = $(shell expr $(MESH_XDIM) \* $(MESH_YDIM))
+
 CXXFLAGS += -std=c++17 -Wall -Wextra -Wfatal-errors -Wno-array-bounds
 CXXFLAGS += -fPIC -Wno-maybe-uninitialized
 CXXFLAGS += -I$(ROOT_DIR)/hw -I$(COMMON_DIR)
@@ -96,10 +100,10 @@ all: $(DESTDIR)/$(PROJECT)
 #.PHONY: $(DESTDIR)/VX_mesh_define.vh
 
 $(DESTDIR)/VX_mesh_define.vh:
-	make -C ~/poly/gpumesh_global/chipyard/generators/gpumesh/src/main/scala/test Configs.scala MESH_XDIM=1 MESH_YDIM=2
-	$(SCRIPT_DIR)/make_constellation_verilog.sh 
+	make -C ~/poly/gpumesh_global/chipyard/generators/gpumesh/src/main/scala/test Configs.scala MESH_XDIM=$(MESH_XDIM) MESH_YDIM=$(MESH_YDIM)
+	$(SCRIPT_DIR)/make_constellation_verilog.sh /home/user/poly/gpumesh_global/chipyard
 	python $(SCRIPT_DIR)/prepare_mesh_verilog.py -i $(MESH_DIR)
-	python $(SCRIPT_DIR)/gen_mesh_connect.py -i $(MESH_DIR) -o $(DESTDIR)/VX_mesh_define.vh
+	python $(SCRIPT_DIR)/gen_mesh_connect.py -i $(MESH_DIR) -o $(DESTDIR)/VX_mesh_define.vh -n $(MESH_SIZE)
 
 $(DESTDIR)/$(PROJECT): $(SRCS) $(SRC_DIR)/main.cpp $(DESTDIR)/VX_mesh_define.vh
 	verilator --build $(VL_FLAGS) -I$(DESTDIR)/VX_mesh_define.vh $(FROM_CONSTELLATION) $^ -CFLAGS '$(CXXFLAGS) -DSTARTUP_ADDR=0x80000000' -LDFLAGS '$(LDFLAGS)' --Mdir $@.obj_dir -o $@
