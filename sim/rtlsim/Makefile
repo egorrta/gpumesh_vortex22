@@ -4,6 +4,7 @@ DESTDIR ?= $(CURDIR)
 
 SRC_DIR = $(VORTEX_HOME)/sim/rtlsim
 
+#Chipyard variables
 MESH_DIR = /home/user/poly/gpumesh_global/chipyard/sims/verilator/generated-src/gpumesh.test.TestHarness.TLMesh01
 
 CXXFLAGS += -std=c++17 -Wall -Wextra -Wfatal-errors -Wno-array-bounds
@@ -92,14 +93,18 @@ FROM_CONSTELLATION := -f $(MESH_DIR)/sim_files.common.f \
 
 all: $(DESTDIR)/$(PROJECT)
 
+#.PHONY: $(DESTDIR)/VX_mesh_define.vh
+
 $(DESTDIR)/VX_mesh_define.vh:
-    python $(SCRIPT_DIR)/prepare_mesh_verilog.py -i $(MESH_DIR)
+	make -C ~/poly/gpumesh_global/chipyard/generators/gpumesh/src/main/scala/test Configs.scala MESH_XDIM=1 MESH_YDIM=2
+	$(SCRIPT_DIR)/make_constellation_verilog.sh 
+	python $(SCRIPT_DIR)/prepare_mesh_verilog.py -i $(MESH_DIR)
 	python $(SCRIPT_DIR)/gen_mesh_connect.py -i $(MESH_DIR) -o $(DESTDIR)/VX_mesh_define.vh
 
 $(DESTDIR)/$(PROJECT): $(SRCS) $(SRC_DIR)/main.cpp $(DESTDIR)/VX_mesh_define.vh
 	verilator --build $(VL_FLAGS) -I$(DESTDIR)/VX_mesh_define.vh $(FROM_CONSTELLATION) $^ -CFLAGS '$(CXXFLAGS) -DSTARTUP_ADDR=0x80000000' -LDFLAGS '$(LDFLAGS)' --Mdir $@.obj_dir -o $@
 
-$(DESTDIR)/lib$(PROJECT).so: $(SRCS) $(DESTDIR)/VX_mesh_define.vh
+$(DESTDIR)/lib$(PROJECT).so: $(SRCS)
 	verilator --build $(VL_FLAGS) -I$(DESTDIR)/VX_mesh_define.vh $(FROM_CONSTELLATION) $^ -CFLAGS '$(CXXFLAGS)' -LDFLAGS '-shared $(LDFLAGS)' --Mdir $@.obj_dir -o $@
 
 clean-mesh:
