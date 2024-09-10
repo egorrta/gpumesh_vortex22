@@ -43,6 +43,7 @@ clean-build:
 
 clean: clean-build
 	$(MAKE) -C $(VORTEX_HOME)/third_party clean
+	$(VORTEX_HOME)/hw/scripts/clean_constellation_verilog.sh /home/user/poly/gpumesh_global/chipyard
 
 # Install setup
 KERNEL_INC_DST = $(INSTALLDIR)/kernel/include
