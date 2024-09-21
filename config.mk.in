@@ -35,3 +35,10 @@ VORTEX_RT_PATH ?= $(VORTEX_HOME)/runtime
 VORTEX_KN_PATH ?= $(VORTEX_HOME)/kernel
 
 THIRD_PARTY_DIR ?= $(VORTEX_HOME)/third_party
+
+#Chipyard installation variables
+CHIPYARD_DIR ?= /home/user/poly/gpumesh_global/chipyard
+CHIPYARD_SUBPROJECT_NAME ?= gpumesh
+CHIPYARD_CONFIG_NAME ?= TLMesh01
+CHIPYARD_CONFIGS_DIR ?= $(CHIPYARD_DIR)/generators/$(CHIPYARD_SUBPROJECT_NAME)/src/main/scala/test
+MESH_DIR ?= $(CHIPYARD_DIR)/sims/verilator/generated-src/$(CHIPYARD_SUBPROJECT_NAME).test.TestHarness.$(CHIPYARD_CONFIG_NAME)
