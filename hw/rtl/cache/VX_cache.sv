@@ -15,8 +15,12 @@
 
 `include "VX_mesh_define.vh"
 
-`ifndef MESH_CONNECTION
-`define MESH_CONNECTION
+`ifndef MESH_CONNECTION_REQ
+`define MESH_CONNECTION_REQ
+`endif
+
+`ifndef MESH_CONNECTION_RSP
+`define MESH_CONNECTION_RSP
 `endif
 
 module VX_cache import VX_gpu_pkg::*; #(
@@ -337,8 +341,8 @@ module VX_cache import VX_gpu_pkg::*; #(
 
         //`STATIC_ASSERT(0 == (`IO_BASE_ADDR % `MEM_BLOCK_SIZE), ("invalid parameter"))
 
-        NoC lazyNoC (
-            `MESH_CONNECTION
+        NoC req_noc (
+            `MESH_CONNECTION_REQ
         );
 
     end else begin
@@ -481,24 +485,46 @@ module VX_cache import VX_gpu_pkg::*; #(
 
     `RESET_RELAY (rsp_xbar_reset, reset);
 
-    VX_stream_xbar #(
-        .NUM_INPUTS  (NUM_BANKS),
-        .NUM_OUTPUTS (NUM_REQS),
-        .DATAW       (CORE_RSP_DATAW),
-        .ARBITER     ("F")
-    ) rsp_xbar (
-        .clk       (clk),
-        .reset     (rsp_xbar_reset),
-        `UNUSED_PIN (collisions),
-        .valid_in  (per_bank_core_rsp_valid),
-        .data_in   (core_rsp_data_in),
-        .sel_in    (per_bank_core_rsp_idx),
-        .ready_in  (per_bank_core_rsp_ready),
-        .valid_out (core_rsp_valid_s),
-        .data_out  (core_rsp_data_out),
-        .ready_out (core_rsp_ready_s),
-        `UNUSED_PIN (sel_out)
-    );
+    if (ENABLE_MESH == 1) begin //ENABLE_MESH == 1
+
+        // `ifdef DBG_TRACE_CACHE
+        //     always @(posedge clk) begin 
+        //         `TRACE(0, ("%d: (Mesh) valid_in: %d, ready_in: %d, valid_out: %d, ready_out: %d\n", $time, core_req_valid[0], core_req_ready[0], per_bank_core_req_valid[0], per_bank_core_req_ready[0]));
+        //         if (($time % 1000) == 0) begin
+        //             `TRACE(0, ("(Mesh) full_sel: %d \n", per_bank_core_req_idx));
+        //             `TRACE(0, ("(Mesh) NUM_IN: %d, NUM_OUT: %d, DATA_W: %d \n", NUM_REQS, NUM_BANKS, CORE_REQ_DATAW));
+        //         end
+        //     end
+        // `endif
+
+        //`STATIC_ASSERT(0 == (`IO_BASE_ADDR % `MEM_BLOCK_SIZE), ("invalid parameter"))
+
+        NoC rsp_noc (
+            `MESH_CONNECTION_RSP
+        );
+
+    end else begin
+
+        VX_stream_xbar #(
+            .NUM_INPUTS  (NUM_BANKS),
+            .NUM_OUTPUTS (NUM_REQS),
+            .DATAW       (CORE_RSP_DATAW),
+            .ARBITER     ("F")
+        ) rsp_xbar (
+            .clk       (clk),
+            .reset     (rsp_xbar_reset),
+            `UNUSED_PIN (collisions),
+            .valid_in  (per_bank_core_rsp_valid),
+            .data_in   (core_rsp_data_in),
+            .sel_in    (per_bank_core_rsp_idx),
+            .ready_in  (per_bank_core_rsp_ready),
+            .valid_out (core_rsp_valid_s),
+            .data_out  (core_rsp_data_out),
+            .ready_out (core_rsp_ready_s),
+            `UNUSED_PIN (sel_out)
+        );
+
+    end
 
     for (genvar i = 0; i < NUM_REQS; ++i) begin
         assign {core_rsp_data_s[i], core_rsp_tag_s[i]} = core_rsp_data_out[i];

@@ -58,10 +58,14 @@ def useSignal(collection, signal, verbal=True):
         return False
 
 with open(args.output, 'w') as out:
+    rsp_mesh_to_print = ""
+
     useSignal(singnals_on_noc, "clock")
-    out.write("`define MESH_CONNECTION .clock(clk), \\\n")
+    out.write("`define MESH_CONNECTION_REQ .clock(clk), \\\n")
+    rsp_mesh_to_print+="`define MESH_CONNECTION_RSP .clock(clk), \\\n"
     useSignal(singnals_on_noc, "reset")
     out.write(".reset(req_xbar_reset), \\\n")
+    rsp_mesh_to_print+=".reset(rsp_xbar_reset), \\\n"
 
     def noc_to_vx(x):
         return x
@@ -73,24 +77,34 @@ with open(args.output, 'w') as out:
         ("io_egress_", "_flit_bits_tail",""),
     ]
 
-    noc_io = [
-        ("io_ingress_", "_flit_ready", "core_req_ready"),
-        ("io_ingress_", "_flit_valid", "core_req_valid"),
-        ("io_ingress_", "_flit_bits_payload", "core_req_data_in"),
-        ("io_ingress_", "_flit_bits_egress_id", "core_req_bid"),
-        ("io_egress_", "_flit_ready", "per_bank_core_req_ready"),
-        ("io_egress_", "_flit_valid", "per_bank_core_req_valid"),
-        ("io_egress_", "_flit_bits_payload", "core_req_data_out"),
-        ("io_egress_", "_flit_bits_ingress_id", "per_bank_core_req_idx")
+    #format is inputport_part1, inputport_part2, req_mesh_connection, rsp_mesh_connection
+    noc_io = [ 
+        ("io_ingress_", "_flit_ready", "core_req_ready", "per_bank_core_rsp_ready"),
+        ("io_ingress_", "_flit_valid", "core_req_valid", "per_bank_core_rsp_valid"),
+        ("io_ingress_", "_flit_bits_payload", "core_req_data_in", "core_rsp_data_in"),
+        ("io_ingress_", "_flit_bits_egress_id", "core_req_bid", "per_bank_core_rsp_idx"),
+        ("io_egress_", "_flit_ready", "per_bank_core_req_ready", "core_rsp_ready_s"),
+        ("io_egress_", "_flit_valid", "per_bank_core_req_valid", "core_rsp_valid_s"),
+        ("io_egress_", "_flit_bits_payload", "core_req_data_out", "core_rsp_data_out"),
+        ("io_egress_", "_flit_bits_ingress_id", "per_bank_core_req_idx", "")
     ]
 
     for n in range(nodes):
         for io in noc_io:
             useSignal(singnals_on_noc,io[0] + str(n) + io[1])
-            out.write("." + io[0] + str(n) + io[1] + "(" + io[2] + "[" + str(noc_to_vx(n)) + "]), \\\n")
+            if io[2] != "":
+                out.write("." + io[0] + str(n) + io[1] + "(" + io[2] + "[" + str(noc_to_vx(n)) + "]), \\\n")
+            else:
+                out.write("." + io[0] + str(n) + io[1] + "(), \\\n")
+
+            if io[3] != "":
+                rsp_mesh_to_print+=("." + io[0] + str(n) + io[1] + "(" + io[3] + "[" + str(noc_to_vx(n)) + "]), \\\n")
+            else:
+                rsp_mesh_to_print+=("." + io[0] + str(n) + io[1] + "(), \\\n")
         for ht in head_tail:
             useSignal(singnals_on_noc,ht[0] + str(n) + ht[1])
             out.write("." + ht[0] + str(n) + ht[1] + "(" + ht[2] +"), \\\n")
+            rsp_mesh_to_print+=("." + ht[0] + str(n) + ht[1] + "(" + ht[2] +"), \\\n")
 
 
     clock_i = 0
@@ -100,9 +114,16 @@ with open(args.output, 'w') as out:
 
     for i in range(clock_i-1):
         out.write(".io_router_clocks_" + str(i) + "_clock(clk), \\\n")
+        rsp_mesh_to_print+=(".io_router_clocks_" + str(i) + "_clock(clk), \\\n")
         out.write(".io_router_clocks_" + str(i) + "_reset(req_xbar_reset), \\\n")
+        rsp_mesh_to_print+=(".io_router_clocks_" + str(i) + "_reset(rsp_xbar_reset), \\\n")
     out.write(".io_router_clocks_" + str(clock_i-1) + "_clock(clk), \\\n")
+    rsp_mesh_to_print+=(".io_router_clocks_" + str(clock_i-1) + "_clock(clk), \\\n")
     out.write(".io_router_clocks_" + str(clock_i-1) + "_reset(req_xbar_reset)\n")
+    rsp_mesh_to_print+=(".io_router_clocks_" + str(clock_i-1) + "_reset(rsp_xbar_reset)\n")
+
+    out.write("\n")
+    out.write(rsp_mesh_to_print)
 
     if len(singnals_on_noc) != 0:
         print("Unconnected signals: ",singnals_on_noc)
