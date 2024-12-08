@@ -39,7 +39,8 @@ module VX_mem_scheduler #(
     parameter MEM_BATCH_BITS= `CLOG2(MEM_BATCHES),
     parameter MEM_QUEUE_ADDRW= `CLOG2(COALESCE_ENABLE ? MEM_QUEUE_SIZE : CORE_QUEUE_SIZE),
     parameter MEM_ADDR_WIDTH= ADDR_WIDTH - `CLOG2(PER_LINE_REQS),
-    parameter MEM_TAG_WIDTH = UUID_WIDTH + MEM_QUEUE_ADDRW + MEM_BATCH_BITS
+    parameter MEM_TAG_WIDTH = UUID_WIDTH + MEM_QUEUE_ADDRW + MEM_BATCH_BITS,
+    parameter BANK_SEL_BITS = `MAX(`CLOG2(`L2_NUM_BANKS),1)
 ) (
     input wire clk,
     input wire reset,
@@ -49,6 +50,8 @@ module VX_mem_scheduler #(
     input wire                              core_req_rw,
     input wire [CORE_REQS-1:0]              core_req_mask,
     input wire [CORE_REQS-1:0][WORD_SIZE-1:0] core_req_byteen,
+    input wire [CORE_REQS-1:0] core_req_spatial,
+    input wire [CORE_REQS-1:0][BANK_SEL_BITS-1:0] core_req_cache_sel,
     input wire [CORE_REQS-1:0][ADDR_WIDTH-1:0] core_req_addr,
     input wire [CORE_REQS-1:0][ATYPE_WIDTH-1:0] core_req_atype,
     input wire [CORE_REQS-1:0][WORD_WIDTH-1:0] core_req_data,
@@ -112,6 +115,8 @@ module VX_mem_scheduler #(
     wire [CORE_REQS-1:0]            reqq_mask;
     wire                            reqq_rw;
     wire [CORE_REQS-1:0][WORD_SIZE-1:0] reqq_byteen;
+    wire [CORE_REQS-1:0] rreq_spatial;
+    wire [CORE_REQS-1:0][BANK_SEL_BITS-1:0] rreq_cache_sel;
     wire [CORE_REQS-1:0][ADDR_WIDTH-1:0] reqq_addr;
     wire [CORE_REQS-1:0][ATYPE_WIDTH-1:0] reqq_atype;
     wire [CORE_REQS-1:0][WORD_WIDTH-1:0] reqq_data;
@@ -122,6 +127,8 @@ module VX_mem_scheduler #(
     wire [MERGED_REQS-1:0]          reqq_mask_s;
     wire                            reqq_rw_s;
     wire [MERGED_REQS-1:0][LINE_SIZE-1:0] reqq_byteen_s;
+    wire [MERGED_REQS-1:0] reqq_spatial_s;
+    wire [MERGED_REQS-1:0][BANK_SEL_BITS-1:0] reqq_cache_sel_s;
     wire [MERGED_REQS-1:0][MEM_ADDR_WIDTH-1:0] reqq_addr_s;
     wire [MERGED_REQS-1:0][ATYPE_WIDTH-1:0] reqq_atype_s;
     wire [MERGED_REQS-1:0][LINE_WIDTH-1:0] reqq_data_s;
@@ -168,7 +175,7 @@ module VX_mem_scheduler #(
     end
 
     VX_elastic_buffer #(
-        .DATAW   (1 + CORE_REQS * (1 + WORD_SIZE + ADDR_WIDTH + ATYPE_WIDTH + WORD_WIDTH) + REQQ_TAG_WIDTH),
+        .DATAW   (1 + CORE_REQS * (1 + WORD_SIZE + ADDR_WIDTH + ATYPE_WIDTH + WORD_WIDTH) + REQQ_TAG_WIDTH + (BANK_SEL_BITS+1)),
         .SIZE    (CORE_QUEUE_SIZE),
         .OUT_REG (1)
     ) req_queue (
@@ -176,8 +183,8 @@ module VX_mem_scheduler #(
         .reset    (reset),
         .valid_in (reqq_valid_in),
         .ready_in (reqq_ready_in),
-        .data_in  ({core_req_rw, core_req_mask, core_req_byteen, core_req_addr, core_req_atype, core_req_data, reqq_tag_u}),
-        .data_out ({reqq_rw,     reqq_mask,     reqq_byteen,     reqq_addr,     reqq_atype,     reqq_data,     reqq_tag}),
+        .data_in  ({core_req_rw, core_req_mask, core_req_byteen, core_req_spatial, core_req_cache_sel, core_req_addr, core_req_atype, core_req_data, reqq_tag_u}),
+        .data_out ({reqq_rw,     reqq_mask,     reqq_byteen,     rreq_spatial,     rreq_cache_sel,     reqq_addr,     reqq_atype,     reqq_data,     reqq_tag}),
         .valid_out(reqq_valid),
         .ready_out(reqq_ready)
     );
@@ -221,7 +228,7 @@ module VX_mem_scheduler #(
 
     // Handle memory coalescing ///////////////////////////////////////////////
 
-    if (COALESCE_ENABLE) begin
+    if (COALESCE_ENABLE) begin //Spatial mode doent work with coalesce enable
 
         `RESET_RELAY (coalescer_reset, reset);
 
@@ -282,6 +289,8 @@ module VX_mem_scheduler #(
         assign reqq_mask_s  = reqq_mask;
         assign reqq_rw_s    = reqq_rw;
         assign reqq_byteen_s= reqq_byteen;
+        assign reqq_spatial_s= reqq_spatial;
+        assign reqq_cache_sel_s= reqq_cache_sel;
         assign reqq_addr_s  = reqq_addr;
         assign reqq_atype_s = reqq_atype;
         assign reqq_data_s  = reqq_data;

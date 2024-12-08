@@ -19,7 +19,8 @@ interface VX_lsu_mem_if #(
     parameter ATYPE_WIDTH= `ADDR_TYPE_WIDTH,
     parameter TAG_WIDTH  = 1,
     parameter MEM_ADDR_WIDTH = `MEM_ADDR_WIDTH,
-    parameter ADDR_WIDTH = MEM_ADDR_WIDTH - `CLOG2(DATA_SIZE)
+    parameter ADDR_WIDTH = MEM_ADDR_WIDTH - `CLOG2(DATA_SIZE),
+    parameter BANK_SEL_BITS = `MAX(`CLOG2(`L2_NUM_BANKS),1)
 ) ();
 
     typedef struct packed {
@@ -28,6 +29,8 @@ interface VX_lsu_mem_if #(
         logic [NUM_LANES-1:0][DATA_SIZE-1:0]   byteen;
         logic [NUM_LANES-1:0][ADDR_WIDTH-1:0]  addr;
         logic [NUM_LANES-1:0][ATYPE_WIDTH-1:0] atype;
+        logic [NUM_LANES-1:0] spatial;
+        logic [NUM_LANES-1:0][BANK_SEL_BITS-1:0] cache_sel;
         logic [NUM_LANES-1:0][DATA_SIZE*8-1:0] data;
         logic [TAG_WIDTH-1:0]   tag;
     } req_data_t;

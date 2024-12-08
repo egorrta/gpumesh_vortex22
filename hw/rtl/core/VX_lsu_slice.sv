@@ -36,6 +36,7 @@ module VX_lsu_slice import VX_gpu_pkg::*, VX_trace_pkg::*; #(
     localparam REQ_ASHIFT   = `CLOG2(LSU_WORD_SIZE);
     localparam MEM_ASHIFT   = `CLOG2(`MEM_BLOCK_SIZE);
     localparam MEM_ADDRW    = `MEM_ADDR_WIDTH - MEM_ASHIFT;
+    localparam BANK_SEL_BITS = `MAX(`CLOG2(`L2_NUM_BANKS),1);
 
     // tag_id = wid + PC + wb + rd + op_type + align + pid + pkt_addr + fence
     localparam TAG_ID_WIDTH = `NW_WIDTH + `PC_BITS + 1 + `NR_BITS + `INST_LSU_BITS + (NUM_LANES * REQ_ASHIFT) + PID_WIDTH + LSUQ_SIZEW + 1;
@@ -88,6 +89,8 @@ module VX_lsu_slice import VX_gpu_pkg::*, VX_trace_pkg::*; #(
     wire                            mem_req_rw;
     wire [NUM_LANES-1:0][LSU_ADDR_WIDTH-1:0] mem_req_addr;
     wire [NUM_LANES-1:0][LSU_WORD_SIZE-1:0] mem_req_byteen;
+    wire [NUM_LANES-1:0] mem_req_spatial;
+    wire [NUM_LANES-1:0][BANK_SEL_BITS-1:0] mem_req_cache_sel;
     reg  [NUM_LANES-1:0][LSU_WORD_SIZE*8-1:0] mem_req_data;
     wire [TAG_WIDTH-1:0]            mem_req_tag;
     wire                            mem_req_ready;
@@ -182,6 +185,8 @@ module VX_lsu_slice import VX_gpu_pkg::*, VX_trace_pkg::*; #(
             endcase
         end
         assign mem_req_byteen[i] = mem_req_byteen_r;
+        assign mem_req_spatial[i] = 1'b1;
+        assign mem_req_cache_sel[i] = {BANK_SEL_BITS{1'b1}};
     end
 
     // memory misalignment not supported!
@@ -327,7 +332,8 @@ module VX_lsu_slice import VX_gpu_pkg::*, VX_trace_pkg::*; #(
         .UUID_WIDTH  (`UUID_WIDTH),
         .RSP_PARTIAL (1),
         .MEM_OUT_BUF (0),
-        .CORE_OUT_BUF(0)
+        .CORE_OUT_BUF(0),
+        .BANK_SEL_BITS(BANK_SEL_BITS)
     ) mem_scheduler (
         .clk            (clk),
         .reset          (mem_scheduler_reset),
@@ -337,6 +343,8 @@ module VX_lsu_slice import VX_gpu_pkg::*, VX_trace_pkg::*; #(
         .core_req_rw    (mem_req_rw),
         .core_req_mask  (mem_req_mask),
         .core_req_byteen(mem_req_byteen),
+        .core_req_spatial(mem_req_spatial),
+        .core_req_cache_sel(mem_req_cache_sel),
         .core_req_addr  (mem_req_addr),
         .core_req_atype (mem_req_atype),
         .core_req_data  (mem_req_data),
@@ -387,7 +395,7 @@ module VX_lsu_slice import VX_gpu_pkg::*, VX_trace_pkg::*; #(
     assign lsu_mem_rsp_mask = lsu_mem_if.rsp_data.mask;
     assign lsu_mem_rsp_data = lsu_mem_if.rsp_data.data;
     assign lsu_mem_rsp_tag = lsu_mem_if.rsp_data.tag;
-    assign lsu_mem_if.rsp_ready = lsu_mem_rsp_ready;
+    assign lsu_mem_if.rsp_ready = lsu_mem_rsp_ready; 
 
     wire [`UUID_WIDTH-1:0] rsp_uuid;
     wire [`NW_WIDTH-1:0] rsp_wid;
