@@ -1,5 +1,6 @@
 #include <vx_spawn.h>
 #include "common.h"
+#include <vx_print.h>
 
 void kernel_body(kernel_arg_t *arg)
 {
@@ -14,6 +15,7 @@ void kernel_body(kernel_arg_t *arg)
 
     TYPE sum = 0;
     int count = 0;
+    TYPE ave = 0;
 
     // Stencil kernel size is assumed to be 3x3x3
     for (int dz = -1; dz <= 1; ++dz)
@@ -48,7 +50,10 @@ void kernel_body(kernel_arg_t *arg)
     }
 
     // Compute the average of the sum of neighbors and write to the output array
-    B[dep * size * size + row * size + col] = sum / count;
+    ave = sum / count;
+    B[dep * size * size + row * size + col] = ave;
+    vx_printf("SW addr: %#04x\n",B + (dep * size * size + row * size + col)*4);
+    vx_printf("SW data: %#04x\n",ave);
 }
 
 int main()
