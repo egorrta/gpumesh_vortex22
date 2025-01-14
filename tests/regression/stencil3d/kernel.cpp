@@ -52,7 +52,8 @@ void kernel_body(kernel_arg_t *arg)
     // Compute the average of the sum of neighbors and write to the output array
     ave = sum / count;
     B[dep * size * size + row * size + col] = ave;
-    vx_printf("SW addr: %#04x\n",B + (dep * size * size + row * size + col)*4);
+    vx_printf("LW addr: %#04x\n",&A[dep * size * size + row * size + col]);
+    vx_printf("SW addr: %#04x\n",&B[dep * size * size + row * size + col]);
     vx_printf("SW data: %#04x\n",ave);
 }
 
