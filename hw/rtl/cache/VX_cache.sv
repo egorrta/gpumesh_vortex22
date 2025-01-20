@@ -299,29 +299,29 @@ module VX_cache import VX_gpu_pkg::*; #(
         assign core_req_line_addr[i] = core_req_addr[i][(BANK_SEL_BITS + WORD_SEL_BITS) +: LINE_ADDR_WIDTH];
     end
 
-    wire [`CS_WORD_ADDR_WIDTH-1:0] spatial_addr = `CS_WORD_ADDR_WIDTH'(20'h10000);
-    wire [NUM_REQS-1:0] core_req_spatial;
+    // wire [`CS_WORD_ADDR_WIDTH-1:0] spatial_addr = `CS_WORD_ADDR_WIDTH'(20'h10000);
+    // wire [NUM_REQS-1:0] core_req_spatial;
 
     if (NUM_BANKS > 1) begin
         for (genvar i = 0; i < NUM_REQS; ++i) begin
-            if (1) begin
-                //Spatial MODE
-                assign core_req_spatial[i] = ((20'(core_req_addr[i]) >= 20'h400) && (20'(core_req_addr[i]) <= 20'h403));
-                assign core_req_bid[i] = core_req_spatial[i] ? ((core_req_addr[i] - 20'h400)/2) : (core_req_addr[i][WORD_SEL_BITS +: BANK_SEL_BITS]);
+            // if (1) begin
+            //     //Spatial MODE
+            //     assign core_req_spatial[i] = ((20'(core_req_addr[i]) >= 20'h400) && (20'(core_req_addr[i]) <= 20'h403));
+            //     assign core_req_bid[i] = core_req_spatial[i] ? ((core_req_addr[i] - 20'h400)/2) : (core_req_addr[i][WORD_SEL_BITS +: BANK_SEL_BITS]);
             
-                always @(posedge clk) begin 
-                    // if (($time % 1000) == 1) begin
-                    //     `TRACE(1, ("%d: (spatial test 2) addr=0x%0h \n", $time, `TO_FULL_ADDR(core_req_addr[i])));
-                    //     `TRACE(1, ("%d: (spatial test) addr=0x%0h \n", $time, `TO_FULL_ADDR(spatial_addr)));
-                    // end
-                    if (core_req_spatial[i]) begin
-                        `TRACE(1, ("%d: (spatial cache access) full_addr=0x%0h, local_addr=0x%0h, cache_sel=0x%0h \n", $time, `TO_FULL_ADDR(core_req_addr[i]), core_req_addr[i], core_req_bid[i]));
-                    end
-                end
-            end
-            else begin
+            //     always @(posedge clk) begin 
+            //         // if (($time % 1000) == 1) begin
+            //         //     `TRACE(1, ("%d: (spatial test 2) addr=0x%0h \n", $time, `TO_FULL_ADDR(core_req_addr[i])));
+            //         //     `TRACE(1, ("%d: (spatial test) addr=0x%0h \n", $time, `TO_FULL_ADDR(spatial_addr)));
+            //         // end
+            //         if (core_req_spatial[i]) begin
+            //             `TRACE(1, ("%d: (spatial cache access) full_addr=0x%0h, local_addr=0x%0h, cache_sel=0x%0h \n", $time, `TO_FULL_ADDR(core_req_addr[i]), core_req_addr[i], core_req_bid[i]));
+            //         end
+            //     end
+            // end
+            // else begin
                 assign core_req_bid[i] = core_req_addr[i][WORD_SEL_BITS +: BANK_SEL_BITS];
-            end
+            // end
         end
     end else begin
         assign core_req_bid = '0;
